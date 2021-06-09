@@ -10,6 +10,7 @@ import argparse
 import os
 import torch
 
+
 # pylint: disable=C0103,C0301,R0903,W0622
 
 class Options():
@@ -27,7 +28,7 @@ class Options():
         ##
         # Base
         self.parser.add_argument('--dataset', default='cifar10', help='folder | cifar10 | mnist ')
-        self.parser.add_argument('--dataroot', default='', help='path to dataset')        
+        self.parser.add_argument('--dataroot', default='', help='path to dataset')
         self.parser.add_argument('--path', default='', help='path to the folder or image to be predicted.')
         self.parser.add_argument('--batchsize', type=int, default=64, help='input batch size')
         self.parser.add_argument('--workers', type=int, help='number of data loading workers', default=8)
@@ -42,35 +43,42 @@ class Options():
         self.parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         self.parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
         self.parser.add_argument('--name', type=str, default='experiment_name', help='name of the experiment')
-        self.parser.add_argument('--model', type=str, default='skipganomaly', help='chooses which model to use. ganomaly')
-        self.parser.add_argument('--display_server', type=str, default="http://localhost", help='visdom server of the web display')
+        self.parser.add_argument('--model', type=str, default='skipganomaly',
+                                 help='chooses which model to use. ganomaly')
+        self.parser.add_argument('--display_server', type=str, default="http://localhost",
+                                 help='visdom server of the web display')
         self.parser.add_argument('--display_port', type=int, default=8097, help='visdom port of the web display')
         self.parser.add_argument('--display_id', type=int, default=0, help='window id of the web display')
         self.parser.add_argument('--display', action='store_true', help='Use visdom.')
         self.parser.add_argument('--verbose', action='store_true', help='Print the training and model details.')
         self.parser.add_argument('--outf', default='./output', help='folder to output images and model checkpoints')
         self.parser.add_argument('--manualseed', default=-1, type=int, help='manual seed')
-        self.parser.add_argument('--abnormal_class', default='automobile', help='Anomaly class idx for mnist and cifar datasets')
+        self.parser.add_argument('--abnormal_class', default='automobile',
+                                 help='Anomaly class idx for mnist and cifar datasets')
         self.parser.add_argument('--metric', type=str, default='roc', help='Evaluation metric.')
 
         ##
         # Train
-        self.parser.add_argument('--print_freq', type=int, default=100, help='frequency of showing training results on console')
-        self.parser.add_argument('--save_image_freq', type=int, default=100, help='frequency of saving real and fake images')
+        self.parser.add_argument('--print_freq', type=int, default=100,
+                                 help='frequency of showing training results on console')
+        self.parser.add_argument('--save_image_freq', type=int, default=100,
+                                 help='frequency of saving real and fake images')
         self.parser.add_argument('--save_test_images', action='store_true', help='Save test images for demo.')
         self.parser.add_argument('--load_weights', action='store_true', help='Load the pretrained weights')
         self.parser.add_argument('--resume', default='', help="path to checkpoints (to continue training)")
         self.parser.add_argument('--phase', type=str, default='train', help='train, val, test, etc')
         self.parser.add_argument('--iter', type=int, default=0, help='Start from iteration i')
         self.parser.add_argument('--niter', type=int, default=15, help='number of epochs to train for')
-        self.parser.add_argument('--niter_decay', type=int, default=100, help='# of iter to linearly decay learning rate to zero')
+        self.parser.add_argument('--niter_decay', type=int, default=100,
+                                 help='# of iter to linearly decay learning rate to zero')
         self.parser.add_argument('--beta1', type=float, default=0.5, help='momentum term of adam')
         self.parser.add_argument('--lr', type=float, default=0.0002, help='initial learning rate for adam')
         self.parser.add_argument('--w_adv', type=float, default=1, help='Weight for adversarial loss. default=1')
         self.parser.add_argument('--w_con', type=float, default=50, help='Weight for reconstruction loss. default=50')
         self.parser.add_argument('--w_lat', type=float, default=1, help='Weight for latent space loss. default=1')
         self.parser.add_argument('--lr_policy', type=str, default='lambda', help='lambda|step|plateau')
-        self.parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
+        self.parser.add_argument('--lr_decay_iters', type=int, default=50,
+                                 help='multiply by a gamma every lr_decay_iters iterations')
         self.isTrain = True
         self.opt = None
 
@@ -79,7 +87,7 @@ class Options():
         """
 
         self.opt = self.parser.parse_args()
-        self.opt.isTrain = self.isTrain   # train or test
+        self.opt.isTrain = self.isTrain  # train or test
 
         str_ids = self.opt.gpu_ids.split(',')
         self.opt.gpu_ids = []
