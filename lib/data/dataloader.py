@@ -21,7 +21,6 @@ class Data:
         self.valid = valid
 
 
-##
 def load_data(opt):
     """ Load Data
 
@@ -35,12 +34,11 @@ def load_data(opt):
         [type]: dataloader
     """
 
-    ##
     # LOAD DATA SET
     if opt.dataroot == '':
         opt.dataroot = './data/{}'.format(opt.dataset)
 
-    ## CIFAR
+    # CIFAR
     if opt.dataset in ['cifar10']:
         transform = transforms.Compose([transforms.Resize(opt.isize),
                                         transforms.ToTensor(),
@@ -50,7 +48,7 @@ def load_data(opt):
         valid_ds = CIFAR10(root='./data', train=False, download=True, transform=transform)
         train_ds, valid_ds = get_cifar_anomaly_dataset(train_ds, valid_ds, train_ds.class_to_idx[opt.abnormal_class])
 
-    ## MNIST
+    # MNIST
     elif opt.dataset in ['mnist']:
         transform = transforms.Compose([transforms.Resize(opt.isize),
                                         transforms.ToTensor(),
@@ -62,15 +60,14 @@ def load_data(opt):
 
     # FOLDER
     else:
-        transform = transforms.Compose([transforms.Resize(opt.isize),
-                                        transforms.CenterCrop(opt.isize),
+        transform = transforms.Compose([transforms.Resize((opt.isize, opt.isize)),
                                         transforms.ToTensor(),
                                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)), ])
 
         train_ds = ImageFolder(os.path.join(opt.dataroot, 'train'), transform)
         valid_ds = ImageFolder(os.path.join(opt.dataroot, 'test'), transform)
 
-    ## DATALOADER
+    # DATALOADER
     train_dl = DataLoader(dataset=train_ds, batch_size=opt.batchsize, shuffle=True, drop_last=True)
     valid_dl = DataLoader(dataset=valid_ds, batch_size=opt.batchsize, shuffle=False, drop_last=False)
 
