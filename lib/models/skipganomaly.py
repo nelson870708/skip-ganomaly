@@ -2,28 +2,24 @@
 """
 # pylint: disable=C0301,E1101,W0622,C0103,R0902,R0915
 
-##
-from collections import OrderedDict
 import os
 import time
-import numpy as np
-from tqdm import tqdm
+##
+from collections import OrderedDict
 
-import torch.optim as optim
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 import torch.nn as nn
+import torch.optim as optim
 import torch.utils.data
 import torchvision.utils as vutils
 
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from lib.models.networks import NetD, weights_init, define_G, define_D, get_scheduler
-from lib.visualizer import Visualizer
-from lib.loss import l2_loss
 from lib.evaluate import roc
+from lib.loss import l2_loss
 from lib.models.basemodel import BaseModel
-
+from lib.models.networks import define_G, define_D, get_scheduler
 
 
 class Skipganomaly(BaseModel):

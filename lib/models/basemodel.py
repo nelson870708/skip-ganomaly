@@ -2,28 +2,20 @@
 """
 # pylint: disable=C0301,E1101,W0622,C0103,R0902,R0915
 
-##
-from collections import OrderedDict
 import os
 import time
-import numpy as np
-from tqdm import tqdm
+##
+from collections import OrderedDict
 
-from torch.autograd import Variable
-import torch.optim as optim
-import torch.nn as nn
+import numpy as np
 import torch.utils.data
 import torchvision.utils as vutils
+from tqdm import tqdm
 
-from lib.models.networks import NetD, weights_init, define_G, define_D, get_scheduler
+from lib.evaluate import evaluate
+from lib.models.networks import weights_init
 from lib.visualizer import Visualizer
-from lib.loss import l2_loss
-from lib.evaluate import roc
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
-from PIL import Image
 
 class BaseModel():
     """ Base Model for ganomaly

@@ -11,6 +11,7 @@ from torch.optim import lr_scheduler
 from torch.nn import init
 import numpy as np
 
+
 ##
 def weights_init(mod):
     """
@@ -24,6 +25,7 @@ def weights_init(mod):
     elif classname.find('BatchNorm') != -1:
         mod.weight.data.normal_(1.0, 0.02)
         mod.bias.data.fill_(0)
+
 
 ###
 class Encoder(nn.Module):
@@ -80,11 +82,13 @@ class Encoder(nn.Module):
 
         return output
 
+
 ##
 class Decoder(nn.Module):
     """
     DCGAN DECODER NETWORK
     """
+
     def __init__(self, isize, nz, nc, ngf, ngpu, n_extra_layers=0):
         super(Decoder, self).__init__()
         self.ngpu = ngpu
@@ -143,6 +147,7 @@ class BasicDiscriminator(nn.Module):
     """
     NETD
     """
+
     def __init__(self, opt):
         super(BasicDiscriminator, self).__init__()
         isize = opt.isize
@@ -188,7 +193,7 @@ class BasicDiscriminator(nn.Module):
         # main.add_module('final-{0}-{1}-conv'.format(cndf, 1),
         #                     nn.Conv2d(cndf, nz, 4, 1, 0, bias=False))
         feat.add_module('final-{0}-{1}-conv'.format(cndf, 1),
-                            nn.Conv2d(cndf, nz, 4, 1, 0, bias=False))
+                        nn.Conv2d(cndf, nz, 4, 1, 0, bias=False))
         clas.add_module('classifier', nn.Conv2d(nz, 1, 3, 1, 1, bias=False))
         clas.add_module('Sigmoid', nn.Sigmoid())
 
@@ -200,10 +205,11 @@ class BasicDiscriminator(nn.Module):
             feat = nn.parallel.data_parallel(self.feat, input, range(self.ngpu))
             clas = nn.parallel.data_parallel(self.clas, feat, range(self.ngpu))
         else:
-            feat =  self.feat(input)
+            feat = self.feat(input)
             clas = self.clas(feat)
         clas = clas.view(-1, 1).squeeze(1)
         return clas, feat
+
 
 ##
 class NetD(nn.Module):
@@ -228,6 +234,7 @@ class NetD(nn.Module):
         classifier = classifier.view(-1, 1).squeeze(1)
 
         return classifier, features
+
 
 ##
 class NetG(nn.Module):
@@ -263,12 +270,14 @@ def get_norm_layer(norm_type='instance'):
         raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
     return norm_layer
 
+
 ##
 def get_scheduler(optimizer, opt):
     if opt.lr_policy == 'lambda':
         def lambda_rule(epoch):
             lr_l = 1.0 - max(0, epoch + 1 + opt.iter - opt.niter) / float(opt.niter_decay + 1)
             return lr_l
+
         scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda_rule)
     elif opt.lr_policy == 'step':
         scheduler = lr_scheduler.StepLR(optimizer, step_size=opt.lr_decay_iters, gamma=0.1)
@@ -277,6 +286,7 @@ def get_scheduler(optimizer, opt):
     else:
         return NotImplementedError('learning rate policy [%s] is not implemented', opt.lr_policy)
     return scheduler
+
 
 ##
 def init_weights(net, init_type='normal', gain=0.02):
@@ -298,16 +308,19 @@ def init_weights(net, init_type='normal', gain=0.02):
         elif classname.find('BatchNorm2d') != -1:
             init.normal_(m.weight.data, 1.0, gain)
             init.constant_(m.bias.data, 0.0)
+
     net.apply(init_func)
+
 
 ##
 def init_net(net, init_type='normal', gpu_ids=[]):
     if len(gpu_ids) > 0:
-        assert(torch.cuda.is_available())
+        assert (torch.cuda.is_available())
         net.to(gpu_ids[0])
         net = torch.nn.DataParallel(net, gpu_ids)
     init_weights(net, init_type)
     return net
+
 
 ##
 def define_G(opt, norm='batch', use_dropout=False, init_type='normal'):
@@ -316,6 +329,7 @@ def define_G(opt, norm='batch', use_dropout=False, init_type='normal'):
     num_layer = int(np.log2(opt.isize))
     netG = UnetGenerator(opt.nc, opt.nc, num_layer, opt.ngf, norm_layer=norm_layer, use_dropout=use_dropout)
     return init_net(netG, init_type, opt.gpu_ids)
+
 
 ##
 def define_D(opt, norm='batch', use_sigmoid=False, init_type='normal'):
@@ -361,8 +375,9 @@ class GANLoss(nn.Module):
 # Code and idea originally from Justin Johnson's architecture.
 # https://github.com/jcjohnson/fast-neural-style/
 class ResnetGenerator(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6, padding_type='reflect'):
-        assert(n_blocks >= 0)
+    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks=6,
+                 padding_type='reflect'):
+        assert (n_blocks >= 0)
         super(ResnetGenerator, self).__init__()
         self.input_nc = input_nc
         self.output_nc = output_nc
@@ -380,18 +395,19 @@ class ResnetGenerator(nn.Module):
 
         n_downsampling = 2
         for i in range(n_downsampling):
-            mult = 2**i
+            mult = 2 ** i
             model += [nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3,
                                 stride=2, padding=1, bias=use_bias),
                       norm_layer(ngf * mult * 2),
                       nn.ReLU(True)]
 
-        mult = 2**n_downsampling
+        mult = 2 ** n_downsampling
         for i in range(n_blocks):
-            model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout, use_bias=use_bias)]
+            model += [ResnetBlock(ngf * mult, padding_type=padding_type, norm_layer=norm_layer, use_dropout=use_dropout,
+                                  use_bias=use_bias)]
 
         for i in range(n_downsampling):
-            mult = 2**(n_downsampling - i)
+            mult = 2 ** (n_downsampling - i)
             model += [nn.ConvTranspose2d(ngf * mult, int(ngf * mult / 2),
                                          kernel_size=3, stride=2,
                                          padding=1, output_padding=1,
@@ -461,13 +477,18 @@ class UnetGenerator(nn.Module):
         super(UnetGenerator, self).__init__()
 
         # construct unet structure
-        unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, input_nc=None, submodule=None, norm_layer=norm_layer, innermost=True)
+        unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, input_nc=None, submodule=None, norm_layer=norm_layer,
+                                             innermost=True)
         for i in range(num_downs - 5):
-            unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, input_nc=None, submodule=unet_block, norm_layer=norm_layer, use_dropout=use_dropout)
-        unet_block = UnetSkipConnectionBlock(ngf * 4, ngf * 8, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
-        unet_block = UnetSkipConnectionBlock(ngf * 2, ngf * 4, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
+            unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, input_nc=None, submodule=unet_block,
+                                                 norm_layer=norm_layer, use_dropout=use_dropout)
+        unet_block = UnetSkipConnectionBlock(ngf * 4, ngf * 8, input_nc=None, submodule=unet_block,
+                                             norm_layer=norm_layer)
+        unet_block = UnetSkipConnectionBlock(ngf * 2, ngf * 4, input_nc=None, submodule=unet_block,
+                                             norm_layer=norm_layer)
         unet_block = UnetSkipConnectionBlock(ngf, ngf * 2, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
-        unet_block = UnetSkipConnectionBlock(output_nc, ngf, input_nc=input_nc, submodule=unet_block, outermost=True, norm_layer=norm_layer)
+        unet_block = UnetSkipConnectionBlock(output_nc, ngf, input_nc=input_nc, submodule=unet_block, outermost=True,
+                                             norm_layer=norm_layer)
 
         self.model = unet_block
 
@@ -551,7 +572,7 @@ class NLayerDiscriminator(nn.Module):
         nf_mult_prev = 1
         for n in range(1, n_layers):
             nf_mult_prev = nf_mult
-            nf_mult = min(2**n, 8)
+            nf_mult = min(2 ** n, 8)
             sequence += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
                           kernel_size=kw, stride=2, padding=padw, bias=use_bias),
@@ -560,7 +581,7 @@ class NLayerDiscriminator(nn.Module):
             ]
 
         nf_mult_prev = nf_mult
-        nf_mult = min(2**n_layers, 8)
+        nf_mult = min(2 ** n_layers, 8)
         sequence += [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
                       kernel_size=kw, stride=1, padding=padw, bias=use_bias),
